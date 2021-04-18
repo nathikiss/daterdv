@@ -40,7 +40,8 @@
 </template>
 <script>
 import axios from "axios";
-
+const API=process.env.VUE_APP_ROOT_API
+console.log(API)
 export default {
   name: "Votes",
   components: {

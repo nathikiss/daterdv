@@ -4,6 +4,7 @@ import Propositions from '../views/Propositions.vue'
 //import Connexion from '../views/Connexion.vue'
 import Inscription from '../views/Inscription.vue'
 import Votes from '../views/Votes.vue'
+
 const routes = [
   {
     path: '/',

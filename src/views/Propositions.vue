@@ -1,11 +1,12 @@
 <template>
-  <div class="">
+  <div class="" >
     <h1>Propositions de Reunions</h1>
     <br />
     <br />
-    
+
     <!-- TABLEAU de dates -->
-    <table class="table">
+    <div v-if="!isHidden">
+      <table class="table">
       <thead>
         <tr>
           <th scope="col">Dates</th>
@@ -18,10 +19,10 @@
       </tbody>
     </table>
     <div class="btn-margin">
-      <button type="submit" class="btn btn-primary" @click="ajoutDate()">
+      <button type="button" class="btn btn-primary" @click="ajoutDate()">
         +
       </button>
-      <button type="submit" class="btn btn-danger" @click="retireDate()">
+      <button type="button" class="btn btn-danger" @click="retireDate()">
         -
       </button>
     </div>
@@ -31,24 +32,24 @@
     <table class="table">
       <thead>
         <tr class="row">
-          <th scope="col">Participants</th>
+          <th scope="col">Mails Participants</th>
         </tr>
       </thead>
       <tbody>
         <tr
           v-for="(lesParticipant, input) in lesParticipants"
           v-bind:key="input"
-          class="row"
+          class="row" 
         >
-          <td><input type="email" v-model="lesParticipant.participants" /></td>
+          <td><input type="email" v-model="lesParticipant.participant" /></td>
         </tr>
       </tbody>
     </table>
     <div class="btn-margin">
-      <button type="submit" class="btn btn-primary" @click="ajoutParticipant()">
+      <button type="button" class="btn btn-primary" @click="ajoutParticipant()">
         +
       </button>
-      <button type="submit" class="btn btn-danger" @click="retireParticipant()">
+      <button type="button" class="btn btn-danger" @click="retireParticipant()">
         -
       </button>
     </div>
@@ -71,18 +72,19 @@
       </div>
       <div class="col-md-3"></div>
     </div>
-    <br>
+    <br />
     <!-- Nom et Email -->
     <div class="row">
       <div class="col-md-3">
         <div>
-          <div class="mb-3">
-            
-          </div>
+          <div class="mb-3"></div>
         </div>
       </div>
-      <div class="col-md-3" v-for="(leNom, input) in created_by"
-          v-bind:key="input">
+      <div
+        class="col-md-3"
+        v-for="(leNom, input) in created_by"
+        v-bind:key="input"
+      >
         <input
           type="text"
           class="form-control"
@@ -91,8 +93,11 @@
           v-model="leNom.nom"
         />
       </div>
-      <div class="col-md-3" v-for="(leMail, input) in created_by"
-          v-bind:key="input">
+      <div
+        class="col-md-3"
+        v-for="(leMail, input) in created_by"
+        v-bind:key="input"
+      >
         <input
           type="text"
           class="form-control"
@@ -131,12 +136,21 @@
       </div>
       <div class="col-md-3"></div>
     </div>
+    </div>
+    <div v-if="isHidden" class="alert alert-success">
+      <h4 class="alert-heading">Well done!</h4> 
+      <p > La propositions de réunion a été envoyé vous recevrez
+         une notification une fois que tous les participants auront votés </p>
+    </div>
   </div>
+  
 </template>
 <script>
 import Datepicker from "@/components/Datepicker.vue";
 import axios from "axios";
-
+import emailjs from "emailjs-com";
+const API=process.env.VUE_APP_ROOT_API
+console.log(API)
 export default {
   name: "Propositions",
   components: {
@@ -145,13 +159,14 @@ export default {
   data() {
     return {
       reunion: null,
-      toIncrement: 0,
+      counter: 1,
       date: null,
       selectedDates: [{ dates: "", notes: null }],
-      lesParticipants: [{ participants: "" }],
+      lesParticipants: [{ id_participant: 1, participant: "" }],
       mot_de_passe: "",
       nom_reunion: "",
       created_by: [{ nom: "", email: "" }],
+      isHidden: false,
     };
   },
   methods: {
@@ -164,13 +179,36 @@ export default {
       this.selectedDates.splice(this.selectedDates.dates, 1);
     },
     ajoutParticipant() {
+      //Les id_participants commencent à 0 pas à 1, (this.lesParticipants.length)+1 n'a pas suffit à arranger cela
       this.lesParticipants.push({
-        participants: "",
+        id_participant: this.lesParticipants.length + 1,
+        participant: "",
       });
     },
-    //todo probleme UX la fonction retire le premier pas le dernier participant
+
     retireParticipant() {
-      this.lesParticipants.splice(this.lesParticipants.participants, 1);
+      this.lesParticipants.pop({
+        id_participant: this.lesParticipants.length + 1,
+        participant: "",
+      });
+    },
+
+    sendEmail: (e) => {
+      emailjs
+        .sendForm(
+          "service_hrb3teh",
+          "template_rormsbj",
+          e.target,
+          "YOUR_USER_ID"
+        )
+        .then(
+          (result) => {
+            console.log("SUCCESS!", result.status, result.text);
+          },
+          (error) => {
+            console.log("FAILED...", error);
+          }
+        );
     },
     dataToDb() {
       const donnees = {
@@ -178,9 +216,9 @@ export default {
         nom_reunion: this.nom_reunion,
         participants: this.lesParticipants,
         mot_de_passe: this.mot_de_passe,
-        created_by:this.created_by,
-        email:this.created_by.email,
-        nom :this.created_by.nom
+        created_by: this.created_by,
+        email: this.created_by.email,
+        nom: this.created_by.nom,
       };
       axios
         .post("http://localhost:5000/reunions", donnees)
@@ -190,6 +228,7 @@ export default {
         .catch((error) => {
           console.log(error);
         });
+      this.isHidden = true;
     },
   },
   mounted() {
