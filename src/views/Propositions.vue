@@ -221,7 +221,7 @@ export default {
         nom: this.created_by.nom,
       };
       axios
-        .post("http://localhost:5000/reunions", donnees)
+        .post(API, donnees)
         .then((response) => {
           console.log(response);
         })
@@ -235,7 +235,7 @@ export default {
     axios
       //Ajouter un propositions/"login" dans l'API pour trouver uniquement
       //les dates proposer par l'user connecté changer égalment le lien suivant
-      .get("http://localhost:5000/reunions")
+      .get(API)
       .then((response) => {
         this.reunion = response.data;
         console.log(this.reunion);
